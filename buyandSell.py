@@ -19,50 +19,59 @@ class fandoProject:
     
     def CreateOrder(self):
         dhan = self.dhan
-        # if 
-        if self.connected():
-            try:
-                result = dhan.place_order(
-                    tag='Option Sell Order',
-                    transaction_type=dhan.BUY,
-                    exchange_segment=dhan.NSE_FNO,
-                    product_type=dhan.CO,
-                    order_type=dhan.MARKET,
-                    validity='DAY',
-                    security_id='23462',
-                    quantity=1000,
-                    disclosed_quantity=0,
-                    price=0,
-                    trigger_price=0,
-                    after_market_order=False,
-                    amo_time='OPEN',
-                    bo_profit_value=0,
-                    bo_stop_loss_Value=0,
-                    drv_expiry_date=None,
-                    drv_options_type=None,
-                    drv_strike_price=None
-                )
-                # print(json.load(result))
-                
-                if result['status'] == 'failure':
-                    # error_code = result['remarks'].get('error_code')
-                    error_message = result['remarks'].get('message')
+        # type of order
+        if self.whattodo == "buy":
+            if self.connected():
+                try:
                     
-                    # print(f"Error Code: {error_code}")
-                    # print(f"Error Message: {error_message}")
-                    print(f"Failed to create order for {self.namesoftheaccountholder} : {error_message}")
-                else:
-                    print(f"Order Created for {self.namesoftheaccountholder}")
-                    # print(result)
+                    
+                    
+                    
+                    
+                    result = dhan.place_order(
+                        tag='Option Buy Order (Hedge)',
+                        transaction_type=dhan.BUY,
+                        exchange_segment=dhan.NSE_FNO,
+                        product_type=dhan.CO,
+                        order_type=dhan.MARKET,
+                        validity='DAY',
+                        security_id='23462',
+                        quantity=self.qty,
+                        disclosed_quantity=0,
+                        price=0,
+                        trigger_price=0,
+                        after_market_order=False,
+                        amo_time='OPEN',
+                        bo_profit_value=0,
+                        bo_stop_loss_Value=0,
+                        drv_expiry_date=None,
+                        drv_options_type=None,
+                        drv_strike_price=None
+                    )
+                    # print(json.load(result))
+                    
+                    if result['status'] == 'failure':
+                        # error_code = result['remarks'].get('error_code')
+                        error_message = result['remarks'].get('message')
+                        
+                        # print(f"Error Code: {error_code}")
+                        # print(f"Error Message: {error_message}")
+                        print(f"Failed to create order for {self.namesoftheaccountholder} : {error_message}")
+                    else:
+                        print(f"Order Created for {self.namesoftheaccountholder}")
+                        # print(result)
+                    
+                except Exception as Ex :
+                    print(Ex)
+                    # print("Something Gone Wrong with the code while creating the Order")
                 
-            except Exception as Ex :
-                print(Ex)
-                # print("Something Gone Wrong with the code while creating the Order")
-            
-        else :
-            print("Connection Failed : ", self.namesoftheaccountholder)
-
-
+            else :
+                print("Connection Failed : ", self.namesoftheaccountholder)
+        elif self.whattodo == "sell":
+            exit()
+        
+        else:
+            print("Invalid Input (Buy or sell) : ", self.whattodo)
 
 def Config_Data():
     """
@@ -115,9 +124,13 @@ if __name__=="__main__":
     
     if typeoftransation == "buy":
         # Hedge Buy
-        
         print("Put or Call : >>>",end="\t")
         typeofoptions = str(input()).lower()
+        if typeoftransation not in ["put", "call"]:
+            print("Invalid input. Please enter 'put' or 'call'.")
+            exit()
+        
+        
         
         #Strike Price
         print("Enter The Strike Price of banknifty : >>>",end="\t")
@@ -126,29 +139,31 @@ if __name__=="__main__":
         
         print(f"Enter the qty Size in : >>>",end="\t")
         qty = int(input())
+        if qty % 15 != 0:
+            print(f" Qty Size is Wrong ")
         
     
-    config = Config_Data()
-    if config:
-        threads = []
-        for account_config in config['accounts']:
-            dhan_account = dhanhq(account_config['account_id'], account_config['api_token'])
-            project = fandoProject(
-                account_config["account_name"],
-                dhan_account,
-                typeoftransation,
-                1000
-            )
-            
-            # Create thread for each account
-            thread = threading.Thread(target=run_order, args=(project,))
-            threads.append(thread)
-            thread.start()
-            
-        # Join all threads to ensure they complete
-        for thread in threads:
-            thread.join()
+        config = Config_Data()
+        if config:
+            threads = []
+            for account_config in config['accounts']:
+                dhan_account = dhanhq(account_config['account_id'], account_config['api_token'])
+                project = fandoProject(
+                    account_config["account_name"],
+                    dhan_account,
+                    typeoftransation,
+                    1000
+                )
+                
+                # Create thread for each account
+                thread = threading.Thread(target=run_order, args=(project,))
+                threads.append(thread)
+                thread.start()
+                
+            # Join all threads to ensure they complete
+            for thread in threads:
+                thread.join()
 
-        print("All orders processed.")
-    else:
-        print("Wrong with config File")
+            print("All Orders Processed In All Account")
+        else:
+            print("Wrong with config File")
