@@ -23,19 +23,14 @@ class fandoProject:
         if self.whattodo == "buy":
             if self.connected():
                 try:
-                    
-                    
-                    
-                    
-                    
                     result = dhan.place_order(
                         tag='Option Buy Order (Hedge)',
                         transaction_type=dhan.BUY,
                         exchange_segment=dhan.NSE_FNO,
-                        product_type=dhan.CO,
+                        product_type=dhan.INTRA,
                         order_type=dhan.MARKET,
                         validity='DAY',
-                        security_id='23462',
+                        security_id='64218',
                         quantity=self.qty,
                         disclosed_quantity=0,
                         price=0,
@@ -50,16 +45,17 @@ class fandoProject:
                     )
                     # print(json.load(result))
                     
-                    if result['status'] == 'failure':
-                        # error_code = result['remarks'].get('error_code')
-                        error_message = result['remarks'].get('message')
+                    print(result)
+                    # if result['status'] == 'failure':
+                    #     # error_code = result['remarks'].get('error_code')
+                    #     error_message = result['remarks'].get('message')
                         
-                        # print(f"Error Code: {error_code}")
-                        # print(f"Error Message: {error_message}")
-                        print(f"Failed to create order for {self.namesoftheaccountholder} : {error_message}")
-                    else:
-                        print(f"Order Created for {self.namesoftheaccountholder}")
-                        # print(result)
+                    #     # print(f"Error Code: {error_code}")
+                    #     # print(f"Error Message: {error_message}")
+                    #     print(f"Failed to create order for {self.namesoftheaccountholder} : {error_message}")
+                    # else:
+                    #     print(f"Order Created for {self.namesoftheaccountholder}")
+                    #     # print(result)
                     
                 except Exception as Ex :
                     print(Ex)
@@ -115,55 +111,59 @@ if __name__=="__main__":
     
     
     #Buy or sell from User
-    print("Do you want to buy or sell",end="\t")
-    typeoftransation = str(input()).lower()
+    # print("Do you want to buy or sell",end="\t")
+    # typeoftransation = str(input()).lower()
     
-    if typeoftransation not in ["buy", "sell"]:
-        print("Invalid input. Please enter 'buy' or 'sell'.")
-        exit()
+    # if typeoftransation not in ["buy", "sell"]:
+    #     print("Invalid input. Please enter 'buy' or 'sell'.")
+    #     exit()
     
-    if typeoftransation == "buy":
-        # Hedge Buy
-        print("Put or Call : >>>",end="\t")
-        typeofoptions = str(input()).lower()
-        if typeoftransation not in ["put", "call"]:
-            print("Invalid input. Please enter 'put' or 'call'.")
-            exit()
+    # if typeoftransation == "buy":
+    #     # Hedge Buy
+    #     print("Put or Call : >>>",end="\t")
+    #     typeofoptions = str(input()).lower()
+        
+    #     # print(typeofoptions)
+    #     if typeofoptions not in ["put", "call"]:
+    #         print("Invalid input. Please enter 'put' or 'call'.")
+    #         exit()
         
         
         
-        #Strike Price
-        print("Enter The Strike Price of banknifty : >>>",end="\t")
-        strike_price = int(input())
+    #     #Strike Price
+    #     print("Enter The Strike Price of banknifty : >>>",end="\t")
+    #     strike_price = int(input())
         
         
-        print(f"Enter the qty Size in : >>>",end="\t")
-        qty = int(input())
-        if qty % 15 != 0:
-            print(f" Qty Size is Wrong ")
+    #     print(f"Enter the qty Size in : >>>",end="\t")
+    #     qty = int(input())
+    #     if qty % 15 != 0:
+    #         print(f" Qty Size is Wrong ")
         
-    
-        config = Config_Data()
-        if config:
-            threads = []
-            for account_config in config['accounts']:
-                dhan_account = dhanhq(account_config['account_id'], account_config['api_token'])
-                project = fandoProject(
-                    account_config["account_name"],
-                    dhan_account,
-                    typeoftransation,
-                    1000
-                )
-                
-                # Create thread for each account
-                thread = threading.Thread(target=run_order, args=(project,))
-                threads.append(thread)
-                thread.start()
-                
-            # Join all threads to ensure they complete
-            for thread in threads:
-                thread.join()
+    typeoftransation = "buy"
+    qty = 30
 
-            print("All Orders Processed In All Account")
-        else:
-            print("Wrong with config File")
+    config = Config_Data()
+    if config:
+        threads = []
+        for account_config in config['accounts']:
+            dhan_account = dhanhq(account_config['account_id'], account_config['api_token'])
+            project = fandoProject(
+                account_config["account_name"],
+                dhan_account,
+                typeoftransation,
+                qty
+            )
+            
+            # Create thread for each account
+            thread = threading.Thread(target=run_order, args=(project,))
+            threads.append(thread)
+            thread.start()
+            
+        # Join all threads to ensure they complete
+        for thread in threads:
+            thread.join()
+
+        print("All Orders Processed In All Account")
+    else:
+        print("Wrong with config File")
